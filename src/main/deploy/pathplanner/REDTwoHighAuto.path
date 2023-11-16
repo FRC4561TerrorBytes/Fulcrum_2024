@@ -1,0 +1,117 @@
+{
+  "waypoints": [
+    {
+      "anchorPoint": {
+        "x": 14.84,
+        "y": 0.548120070599115
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 13.06638559815907,
+        "y": 1.0233586172566016
+      },
+      "holonomicAngle": 0.0,
+      "isReversal": false,
+      "velOverride": null,
+      "isLocked": false,
+      "isStopPoint": false,
+      "stopEvent": {
+        "names": [],
+        "executionBehavior": "parallel",
+        "waitBehavior": "none",
+        "waitTime": 0
+      }
+    },
+    {
+      "anchorPoint": {
+        "x": 9.77,
+        "y": 0.55
+      },
+      "prevControl": {
+        "x": 12.04420300191448,
+        "y": 0.5499999999999997
+      },
+      "nextControl": {
+        "x": 12.04420300191448,
+        "y": 0.5499999999999997
+      },
+      "holonomicAngle": 180.0,
+      "isReversal": true,
+      "velOverride": null,
+      "isLocked": false,
+      "isStopPoint": false,
+      "stopEvent": {
+        "names": [],
+        "executionBehavior": "parallel",
+        "waitBehavior": "none",
+        "waitTime": 0
+      }
+    },
+    {
+      "anchorPoint": {
+        "x": 14.82,
+        "y": 1.2
+      },
+      "prevControl": {
+        "x": 13.987127864966114,
+        "y": 0.7938001668353057
+      },
+      "nextControl": null,
+      "holonomicAngle": 0.0,
+      "isReversal": false,
+      "velOverride": null,
+      "isLocked": false,
+      "isStopPoint": false,
+      "stopEvent": {
+        "names": [],
+        "executionBehavior": "parallel",
+        "waitBehavior": "none",
+        "waitTime": 0
+      }
+    }
+  ],
+  "maxVelocity": 2.0,
+  "maxAcceleration": 2.0,
+  "isReversed": null,
+  "markers": [
+    {
+      "position": 0.25,
+      "names": [
+        "goToFloor1",
+        "intake1"
+      ]
+    },
+    {
+      "position": 0.05,
+      "names": [
+        "Approach1",
+        "Stow1"
+      ]
+    },
+    {
+      "position": 0.95,
+      "names": [
+        "High1"
+      ]
+    },
+    {
+      "position": 0.2,
+      "names": [
+        "GameStateChange1"
+      ]
+    },
+    {
+      "position": 0.8,
+      "names": [
+        "Approach2",
+        "Print1"
+      ]
+    },
+    {
+      "position": 1.9,
+      "names": [
+        "ScoreCube2"
+      ]
+    }
+  ]
+}

@@ -1,10 +1,8 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
-import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
-import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
@@ -22,7 +20,7 @@ public class SwerveModule extends SubsystemBase {
 
   private final TalonFX m_driveMotor;
   private final CANSparkMax m_turnMotor;
-  private final CANCoder m_absEncoder;
+  private final CANcoder m_absEncoder;
   private final RelativeEncoder m_turnEncoder;
   private final double m_steerOffset;
   private final StatorCurrentLimitConfiguration m_driveMotorCurrentLimit;
@@ -47,7 +45,7 @@ public class SwerveModule extends SubsystemBase {
 
     m_driveMotor = new TalonFX(driveMotorPort);
     m_turnMotor = new CANSparkMax(turnMotorPort, MotorType.kBrushless);
-    m_absEncoder = new CANCoder(absEncoderID);
+    m_absEncoder = new CANcoder(absEncoderID);
     m_turnEncoder = m_turnMotor.getEncoder();
     m_steerOffset = steerOffset;
     m_driveMotorCurrentLimit = new StatorCurrentLimitConfiguration(
@@ -62,7 +60,7 @@ public class SwerveModule extends SubsystemBase {
     turnPidController.setPositionPIDWrappingMaxInput(+Math.PI);
     turnPidController.setPositionPIDWrappingMinInput(-Math.PI);
 
-    m_driveMotor.setNeutralMode(NeutralMode.Brake);
+    m_driveMotor.setNeutralMode(NeutralModeValue.Brake);
     m_turnMotor.setIdleMode(IdleMode.kCoast);
 
     m_driveMotor.setInverted(driveInverted);

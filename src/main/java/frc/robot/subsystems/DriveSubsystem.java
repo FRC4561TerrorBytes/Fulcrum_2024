@@ -6,12 +6,15 @@ package frc.robot.subsystems;
 
 import org.littletonrobotics.junction.Logger;
 
-import com.ctre.phoenix.sensors.PigeonIMU;
-import com.pathplanner.lib.path.PathPlannerTrajectory;
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.commands.FollowPathHolonomic;
+import com.pathplanner.lib.commands.FollowPathWithEvents;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -22,12 +25,10 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers.LimelightResults;
@@ -35,7 +36,7 @@ import frc.robot.LimelightHelpers.LimelightResults;
 public class DriveSubsystem extends SubsystemBase {
 
   // Pigeon gyro
-  private final PigeonIMU m_pigeon = new PigeonIMU(Constants.PIGEON_ID);
+  private final Pigeon2 m_pigeon = new Pigeon2(Constants.PIGEON_ID);
 
   // Swerve Modules
   private final SwerveModule m_frontLeftModule = new SwerveModule(
@@ -74,10 +75,9 @@ public class DriveSubsystem extends SubsystemBase {
   // Odometry
   private SwerveDrivePoseEstimator m_poseEstimator;
 
-  private final PIDController xController = new PIDController(Constants.AUTO_X_KP, Constants.AUTO_X_KI, Constants.AUTO_X_KD);
-  private final  PIDController yController = new PIDController(Constants.AUTO_Y_KP, Constants.AUTO_Y_KI, Constants.AUTO_Y_KD);
-  private final  PIDController thetaController = new PIDController(Constants.AUTO_THETA_KP, Constants.AUTO_THETA_KI,
-        Constants.AUTO_THETA_KD);
+  private double xSpeeds;
+  private double ySpeeds;
+  private double radsPerSecs;
 
   public DriveSubsystem() {
     m_pigeon.setYaw(0.0);
@@ -87,6 +87,9 @@ public class DriveSubsystem extends SubsystemBase {
       new Pose2d(),
       VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5)),
       VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(30)));
+      xSpeeds = 0;
+      ySpeeds = 0;
+      radsPerSecs = 0;
     }
 
   /**
@@ -101,11 +104,20 @@ public class DriveSubsystem extends SubsystemBase {
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
     SwerveModuleState[] swerveModuleStates = Constants.DRIVE_KINEMATICS.toSwerveModuleStates(
         fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, Rotation2d.fromDegrees(m_pigeon.getYaw()))
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, Rotation2d.fromDegrees(m_pigeon.getYaw().getValue()))
             : new ChassisSpeeds(xSpeed, ySpeed, rot));
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.MAX_VELOCITY_METERS_PER_SECOND);
     setModuleStates(swerveModuleStates);
+    xSpeeds = xSpeed;
+    ySpeeds = ySpeed;
+    radsPerSecs = rot;
   }
+
+    public void driveHoloPath(ChassisSpeeds chassisSpeeds) {
+    SwerveModuleState[] swerveModuleStates = Constants.DRIVE_KINEMATICS.toSwerveModuleStates(chassisSpeeds);
+    SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.MAX_VELOCITY_METERS_PER_SECOND);
+    setModuleStates(swerveModuleStates);
+    }
 
   public void setModuleStates(SwerveModuleState[] states) {
     m_frontLeftModule.setDesiredState(states[0]);
@@ -117,7 +129,7 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public Rotation2d getRotation2d() {
-    return Rotation2d.fromDegrees(m_pigeon.getYaw());
+    return Rotation2d.fromDegrees(m_pigeon.getYaw().getValue());
   }
 
   /** Updates the field relative position of the robot. */
@@ -127,6 +139,10 @@ public class DriveSubsystem extends SubsystemBase {
 
   public Pose2d getPose() {
     return m_poseEstimator.getEstimatedPosition();
+  }
+
+  public ChassisSpeeds getChassisSpeeds() {
+    return new ChassisSpeeds(xSpeeds, ySpeeds, radsPerSecs);
   }
 
   public void resetOdometry(Pose2d position) {
@@ -162,22 +178,22 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public boolean onChargeStation() {
-    return Math.abs(m_pigeon.getPitch()) > 20;
+    return Math.abs(m_pigeon.getPitch().getValue()) > 20;
   }
 
   public boolean offPitchDown(){
-    return Math.abs(m_pigeon.getPitch()) > 14;
+    return Math.abs(m_pigeon.getPitch().getValue()) > 14;
   }
 
   public boolean onPitchDown() {
     // double[] angleRates = new double[3];
     // m_pigeon.getRawGyro(angleRates);
     // return onChargeStation() && angleRates[0] < -1;
-    return Math.abs(m_pigeon.getPitch()) < 12;
+    return Math.abs(m_pigeon.getPitch().getValue()) < 12;
   }
 
   public boolean onFlat(){
-    return Math.abs(m_pigeon.getPitch()) < 5;
+    return Math.abs(m_pigeon.getPitch().getValue()) < 5;
   }
 
   // public Rotation2d getYaw(){
@@ -190,7 +206,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if (Math.abs(m_pigeon.getPitch()) > 50 || Math.abs(m_pigeon.getRoll()) > 50) {
+    if (Math.abs(m_pigeon.getPitch().getValue()) > 50 || Math.abs(m_pigeon.getRoll().getValue()) > 50) {
       Logger.recordOutput("tipping", true);
       stop();
     } else {
@@ -198,7 +214,7 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("Pitch", m_pigeon.getPitch());
+    SmartDashboard.putNumber("Pitch", m_pigeon.getPitch().getValue());
     SmartDashboard.putBoolean("On Charge Station", onChargeStation());
     SmartDashboard.putBoolean("On Pitch Down", onPitchDown());
 
@@ -221,25 +237,27 @@ public class DriveSubsystem extends SubsystemBase {
     Logger.recordOutput("measured states", measuredStates);
   }
 
-  public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
-    return new SequentialCommandGroup(
-         new InstantCommand(() -> {
-           // Reset odometry for the first path you run during auto
-           if(isFirstPath){
-               this.resetOdometry(traj.getInitialHolonomicPose());
-           }
-         }),
-         new PPSwerveControllerCommand(
-             traj, 
-             this::getPose, // Pose supplier
-             Constants.DRIVE_KINEMATICS,
-             xController, // X controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
-             yController, // Y controller (usually the same values as X controller)
-             thetaController, // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
-             this::setModuleStates, // Module states consumer
-             false, // paths are already mirrored in auto command, turning true will double mirror
-             this // Requires this drive subsystem
-         )
-     );
- }
+  public Command followTrajectoryCommand(String pathname) {
+    PathPlannerPath path = PathPlannerPath.fromPathFile(pathname);
+
+    return new FollowPathWithEvents(
+      new FollowPathHolonomic(
+        path,
+        this::getPose,
+        this::getChassisSpeeds,
+        this::driveHoloPath,
+        new HolonomicPathFollowerConfig(
+          new PIDConstants(Constants.AUTO_X_KP, Constants.AUTO_X_KI, Constants.AUTO_X_KD),
+          new PIDConstants(Constants.AUTO_THETA_KP, Constants.AUTO_THETA_KI, Constants.AUTO_THETA_KD),
+          Constants.MAX_VELOCITY_METERS_PER_SECOND,
+          0.4,
+          new ReplanningConfig()
+        ),
+        this
+      ),
+      path,
+      this::getPose
+    );
+  }
+
 }

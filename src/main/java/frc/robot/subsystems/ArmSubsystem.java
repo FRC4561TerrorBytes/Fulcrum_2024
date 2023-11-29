@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
@@ -18,8 +20,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
-
-import org.littletonrobotics.junction.Logger;
 
 public class ArmSubsystem extends SubsystemBase {
   private CANSparkMax m_shoulderMotor = new CANSparkMax(Constants.SHOULDER_MOTOR, MotorType.kBrushless);
@@ -207,21 +207,13 @@ public class ArmSubsystem extends SubsystemBase {
    */
   public void setKnownArmPlacement(final KnownArmPlacement placement) {
     double shoulderRotation = m_shoulderEncoder.getPosition();
-    double elbowRotation = m_elbowEncoder.getPosition();
     double desiredShoulderAngle = placement.m_shoulderAngle + Constants.SHOULDER_POSITION_OFFSET;
     double desiredElbowAngle = placement.m_elbowAngle + Constants.ELBOW_POSITION_OFFSET - placement.m_shoulderAngle
         + 90;
     double desiredWristAngle = placement.m_wristAngle;
 
-    TrapezoidProfile.State desiredShoulderState = new TrapezoidProfile.State(desiredShoulderAngle, 0.0);
-    TrapezoidProfile.State currentShoulderState = new TrapezoidProfile.State(shoulderRotation,
-        m_shoulderEncoder.getVelocity() / 60);
-    TrapezoidProfile.State desiredElbowState = new TrapezoidProfile.State(desiredElbowAngle, 0.0);
-    TrapezoidProfile.State currentElbowState = new TrapezoidProfile.State(elbowRotation,
-        m_elbowEncoder.getVelocity() / 60);
-
-    m_shoulderMotionProfile = new TrapezoidProfile(shoulderConstraints, desiredShoulderState, currentShoulderState);
-    m_elbowMotionProfile = new TrapezoidProfile(elbowConstraints, desiredElbowState, currentElbowState);
+    m_shoulderMotionProfile = new TrapezoidProfile(shoulderConstraints);
+    m_elbowMotionProfile = new TrapezoidProfile(elbowConstraints);
 
     m_elbowTimer.restart();
     m_shoulderTimer.restart();
@@ -359,8 +351,11 @@ public class ArmSubsystem extends SubsystemBase {
           Constants.ELBOW_MAX_VOLTAGE_FF * cosineScalar, ArbFFUnits.kVoltage);
       } else {
         m_elbowController.setReference(
-          m_elbowMotionProfile.calculate(m_elbowTimer.get()).position, ControlType.kPosition, pidSlot,
-          Constants.ELBOW_MAX_VOLTAGE_FF * cosineScalar, ArbFFUnits.kVoltage);
+          m_elbowMotionProfile.calculate(m_elbowTimer.get(),
+            new TrapezoidProfile.State(m_targetElbowPosition, 0.0),
+            new TrapezoidProfile.State(m_shoulderEncoder.getPosition(), m_shoulderEncoder.getVelocity() / 60))
+              .position, ControlType.kPosition, pidSlot,
+              Constants.ELBOW_MAX_VOLTAGE_FF * cosineScalar, ArbFFUnits.kVoltage);
       }
     } else {
       m_elbowController.setReference(
@@ -384,8 +379,11 @@ public class ArmSubsystem extends SubsystemBase {
             Constants.SHOULDER_MAX_VOLTAGE_FF * cosineScalar, ArbFFUnits.kVoltage);
       } else {
         m_shoulderController.setReference(
-            m_shoulderMotionProfile.calculate(m_shoulderTimer.get()).position, ControlType.kPosition, pidSlot,
-            Constants.SHOULDER_MAX_VOLTAGE_FF * cosineScalar, ArbFFUnits.kVoltage);
+            m_shoulderMotionProfile.calculate(m_shoulderTimer.get(),
+              new TrapezoidProfile.State(m_targetShoulderPosition, 0.0),
+              new TrapezoidProfile.State(m_shoulderEncoder.getPosition(), m_shoulderEncoder.getVelocity() / 60))
+                .position, ControlType.kPosition, pidSlot,
+                Constants.SHOULDER_MAX_VOLTAGE_FF * cosineScalar, ArbFFUnits.kVoltage);
       }
     } else {
       m_shoulderController.setReference(
@@ -451,13 +449,13 @@ public class ArmSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Elbow Througbore Encoder", m_elbowThroughboreEncoder.getPosition());
     SmartDashboard.putNumber(("Shoulder Calculated Angle"), getCalculatedShoulderAngle());
 
-    Logger.getInstance().recordOutput("Calculated Shoulder", getCalculatedShoulderAngle());
-    Logger.getInstance().recordOutput("Calculated Elbow", getCalculatedElbowAngle());
-    Logger.getInstance().recordOutput("Calculated Wrist", getCalculatedWristAngle());
+    Logger.recordOutput("Calculated Shoulder", getCalculatedShoulderAngle());
+    Logger.recordOutput("Calculated Elbow", getCalculatedElbowAngle());
+    Logger.recordOutput("Calculated Wrist", getCalculatedWristAngle());
   
-    Logger.getInstance().recordOutput("Shoulder Target", m_targetShoulderPosition);
-    Logger.getInstance().recordOutput("Elbow Target", m_targetElbowPosition);
-    Logger.getInstance().recordOutput("Wrist Target", m_targetWristPosition);
+    Logger.recordOutput("Shoulder Target", m_targetShoulderPosition);
+    Logger.recordOutput("Elbow Target", m_targetElbowPosition);
+    Logger.recordOutput("Wrist Target", m_targetWristPosition);
 
   }
 }

@@ -12,8 +12,6 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -97,7 +95,7 @@ public class VisionSubsytem extends SubsystemBase {
   }
 
   private void centerApriltag(final double aprilTagOffset, final double backOffset) {
-    Logger.getInstance().recordOutput("center tag command", true);
+    Logger.recordOutput("center tag command", true);
     LimelightResults leftResult = LimelightHelpers.getLatestResults("limelight-right");
 
     var leftClosestTag = getClosestTag("limelight-right");
@@ -218,8 +216,8 @@ public class VisionSubsytem extends SubsystemBase {
       m_driveSubsytem.drive(xSpeed * 1.2, (ySpeed) * Constants.VISION_LATERAL_SCALING,
         -rot * Constants.VISION_ROTATION_SCALING, false);
       
-      Logger.getInstance().recordOutput("int lat tol", inLatTolerance);
-      Logger.getInstance().recordOutput("rot tol", inRotTolerance);
+      Logger.recordOutput("int lat tol", inLatTolerance);
+      Logger.recordOutput("rot tol", inRotTolerance);
 
       if (inLatTolerance && inRotTolerance && xSpeed == 0.0) {
         GameState.getInstance().setCenteredState(CenteredState.CENTERED);
@@ -239,9 +237,9 @@ public class VisionSubsytem extends SubsystemBase {
     LimelightResults results = LimelightHelpers.getLatestResults("limelight-right");
     if (getClosestTag("limelight-right") != null) {
       m_driveSubsytem.addVision(results);
-      Logger.getInstance().recordOutput("updating with tags", true);
+      Logger.recordOutput("updating with tags", true);
     } else {
-      Logger.getInstance().recordOutput("updating with tags", false);
+      Logger.recordOutput("updating with tags", false);
     }
   }
 

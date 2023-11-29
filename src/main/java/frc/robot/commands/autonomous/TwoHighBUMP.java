@@ -6,9 +6,6 @@ package frc.robot.commands.autonomous;
 
 import java.util.HashMap;
 
-import com.pathplanner.lib.PathPlannerTrajectory;
-import com.pathplanner.lib.commands.PPSwerveControllerCommand;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ScheduleCommand;
@@ -26,10 +23,7 @@ public class TwoHighBUMP extends BasePathAuto {
   DriveSubsystem m_driveSubsystem;
   ArmSubsystem m_armSubsystem;
   IntakeSubsystem m_intakeSubsystem;
-  PathPlannerTrajectory m_pathPlannerTrajectory;
-  PPSwerveControllerCommand m_swerveControllerCommand;
   String autoPathName = "";
-  PathPlannerTrajectory transformedTrajectory;
   boolean isRedAlliance;
 
   /**

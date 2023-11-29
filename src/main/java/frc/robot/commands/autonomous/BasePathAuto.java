@@ -7,12 +7,8 @@ package frc.robot.commands.autonomous;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.commands.FollowPathWithEvents;
-import com.pathplanner.lib.commands.PPSwerveControllerCommand;
-import com.pathplanner.lib.path.PathPlannerTrajectory;
+import com.pathplanner.lib.path.PathPlannerPath;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
 
@@ -22,9 +18,7 @@ import frc.robot.subsystems.DriveSubsystem;
 public class BasePathAuto {
 
   DriveSubsystem m_driveSubsystem;
-  PathPlannerTrajectory m_pathPlannerTrajectory;
-  PathPlannerTrajectory m_transformedTrajectory;
-  PPSwerveControllerCommand m_swerveControllerCommand;
+  PathPlannerPath m_pathPlannerPath;
   Map<String, Command> m_eventMap = new HashMap<>();
   String autoPathName = "";
 
@@ -41,12 +35,6 @@ public class BasePathAuto {
       double maxAccelerationMetersPerSecSquared) {
     this.m_driveSubsystem = driveSubsystem;
     this.autoPathName = autoPathName;
-
-    m_pathPlannerTrajectory = PathPlanner.loadPath(autoPathName, maxSpeedMetersPerSec,
-        maxAccelerationMetersPerSecSquared);
-    m_transformedTrajectory = PathPlannerTrajectory.transformTrajectoryForAlliance(m_pathPlannerTrajectory,
-        DriverStation.getAlliance());
-
   }
 
   protected void setEventMap(Map<String, Command> eventMap){
@@ -58,8 +46,6 @@ public class BasePathAuto {
    * @return returns a path with events for the robot to follow
    */
   public Command getCommandAndStop() {
-    return new FollowPathWithEvents(m_driveSubsystem.followTrajectoryCommand(m_transformedTrajectory, true),
-        m_transformedTrajectory.getMarkers(),
-        m_eventMap);
+    return m_driveSubsystem.followTrajectoryCommand(autoPathName);
   }
 }

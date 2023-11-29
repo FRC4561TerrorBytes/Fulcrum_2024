@@ -113,7 +113,7 @@ public class DriveSubsystem extends SubsystemBase {
     radsPerSecs = rot;
   }
 
-    public void driveHoloPath(ChassisSpeeds chassisSpeeds) {
+    public void driveChassisSpeeds(ChassisSpeeds chassisSpeeds) {
     SwerveModuleState[] swerveModuleStates = Constants.DRIVE_KINEMATICS.toSwerveModuleStates(chassisSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.MAX_VELOCITY_METERS_PER_SECOND);
     setModuleStates(swerveModuleStates);
@@ -245,7 +245,7 @@ public class DriveSubsystem extends SubsystemBase {
         path,
         this::getPose,
         this::getChassisSpeeds,
-        this::driveHoloPath,
+        this::driveChassisSpeeds,
         new HolonomicPathFollowerConfig(
           new PIDConstants(Constants.AUTO_X_KP, Constants.AUTO_X_KI, Constants.AUTO_X_KD),
           new PIDConstants(Constants.AUTO_THETA_KP, Constants.AUTO_THETA_KI, Constants.AUTO_THETA_KD),

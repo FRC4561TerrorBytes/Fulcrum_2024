@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import com.swervedrivespecialties.swervelib.SdsModuleConfigurations;
-
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
@@ -36,8 +34,8 @@ public final class Constants {
   public static final double DRIVETRAIN_WHEELBASE_METERS = 0.53;
 
   public static final double MAX_VELOCITY_METERS_PER_SECOND = FALCON_500_MAX_RPM / 60.0 *
-      SdsModuleConfigurations.MK4I_L2.getDriveReduction() *
-      SdsModuleConfigurations.MK4I_L2.getWheelDiameter() * Math.PI;
+        (14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0) *
+        0.10033 * Math.PI;
 
   public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = MAX_VELOCITY_METERS_PER_SECOND /
       Math.hypot(DRIVETRAIN_TRACKWIDTH_METERS / 2.0,
@@ -101,9 +99,9 @@ public final class Constants {
   public static final double TURN_MOTOR_UPPER_LIMIT = 0.0;
   public static final boolean TURN_ENABLE_SOFT_LIMITS = false;
   public static final double TURN_MOTOR_CONVERSION_FACTOR = 2 * Math.PI
-      * SdsModuleConfigurations.MK4I_L2.getSteerReduction();
-  public static final double DRIVE_MOTOR_CONVERSION_FACTOR = SdsModuleConfigurations.MK4I_L2.getDriveReduction()
-      * SdsModuleConfigurations.MK4I_L2.getWheelDiameter() * Math.PI
+      * (14.0 / 50.0) * (10.0 / 60.0);
+  public static final double DRIVE_MOTOR_CONVERSION_FACTOR = (14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0)
+      * 0.10033 * Math.PI
       / CTRE_TALONFX_ENCODER_TICKS_PER_ROTATION;
 
   // fyi: offset right means lateral offset from center
